@@ -5,14 +5,22 @@ node_modules/
 src/
 tests/
 *.ts
+!*.d.ts
 
 # Config
 tsconfig.json
 vitest.config.ts
 
+# CI/CD
+.github/
+
 # IDE
 .vscode/
 .idea/
+
+# Git
+.git/
+.gitignore
 
 # Misc
 *.log

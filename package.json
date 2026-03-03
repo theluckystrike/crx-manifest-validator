@@ -1,5 +1,5 @@
 {
-  "name": "@zovo/crx-manifest-validator",
+  "name": "crx-manifest-validator",
   "version": "1.0.0",
   "description": "Validate Chrome Extension manifest.json files for common errors and best practices",
   "main": "./dist/index.js",
@@ -8,11 +8,16 @@
   "bin": {
     "crx-manifest-validator": "./dist/cli.js"
   },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublish": "npm run build"
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "chrome",
@@ -20,17 +25,27 @@
     "manifest",
     "validator",
     "web-extension",
-    "chrome-extension"
+    "chrome-extension",
+    "manifest-v3",
+    "browser-extension"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/theluckystrike/crx-manifest-validator.git"
+  },
+  "homepage": "https://github.com/theluckystrike/crx-manifest-validator",
+  "bugs": {
+    "url": "https://github.com/theluckystrike/crx-manifest-validator/issues"
+  },
   "author": "Zovo",
   "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
     "@types/node": "^25.3.3",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }
