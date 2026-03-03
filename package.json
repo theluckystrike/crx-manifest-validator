@@ -1,5 +1,5 @@
 {
-  "name": "crx-manifest-validator",
+  "name": "@zovo/crx-manifest-validator",
   "version": "1.0.0",
   "description": "Validate Chrome Extension manifest.json files for common errors and best practices",
   "main": "./dist/index.js",
