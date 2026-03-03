@@ -68,12 +68,32 @@ async function main(): Promise<void> {
   if (!manifestPath) {
     try {
       const stdinContent = await readFile('/dev/stdin', 'utf-8');
-      const manifest = JSON.parse(stdinContent);
+      let manifest: unknown;
+      try {
+        manifest = JSON.parse(stdinContent);
+      } catch (parseError) {
+        const err = parseError as SyntaxError;
+        console.error(`Error: Invalid JSON from stdin: ${err.message}`);
+        console.error('Hint: Ensure the JSON is valid. For example: cat manifest.json | crx-manifest-validator');
+        console.error('Alternatively, provide the manifest path directly: crx-manifest-validator manifest.json');
+        process.exit(2);
+        return;
+      }
       const result = validateManifest(manifest);
       console.log(formatValidationResult(result, args.format));
       process.exit(result.valid ? 0 : 1);
-    } catch {
-      console.error('Error: No manifest path provided and stdin is not a valid JSON file.');
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err.code === 'ENOENT' || err.message?.includes('Bad file descriptor')) {
+        console.error('Error: No manifest path provided and stdin is not receiving valid input.');
+        console.error('Use --help for usage information.');
+        console.error('Examples:');
+        console.error('  crx-manifest-validator manifest.json');
+        console.error('  cat manifest.json | crx-manifest-validator');
+        process.exit(2);
+        return;
+      }
+      console.error(`Error reading from stdin: ${err.message}`);
       console.error('Use --help for usage information.');
       process.exit(2);
     }
@@ -86,20 +106,34 @@ async function main(): Promise<void> {
 
   try {
     const content = await readFile(absolutePath, 'utf-8');
-    const manifest = JSON.parse(content);
+    let manifest: unknown;
+    try {
+      manifest = JSON.parse(content);
+    } catch (parseError) {
+      const err = parseError as SyntaxError;
+      console.error(`Error: Invalid JSON in ${absolutePath}`);
+      console.error(`Details: ${err.message}`);
+      console.error('Hint: Check for missing commas, trailing commas, unclosed brackets, or invalid JSON syntax.');
+      process.exit(2);
+      return;
+    }
     const result = validateManifest(manifest);
     console.log(formatValidationResult(result, args.format));
     process.exit(result.valid ? 0 : 1);
   } catch (error) {
-    if (error instanceof SyntaxError) {
-      console.error(`Error: Invalid JSON in ${absolutePath}`);
-      process.exit(2);
-    }
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    const err = error as NodeJS.ErrnoException;
+    if (err.code === 'ENOENT') {
       console.error(`Error: File not found: ${absolutePath}`);
+      console.error('Hint: Check that the file path is correct and the file exists.');
       process.exit(2);
     }
-    throw error;
+    if (err.code === 'EACCES' || err.code === 'EPERM') {
+      console.error(`Error: Permission denied: Cannot read ${absolutePath}`);
+      console.error('Hint: Check file permissions with ls -la.');
+      process.exit(2);
+    }
+    console.error(`Error reading file: ${err.message}`);
+    process.exit(2);
   }
 }
 
