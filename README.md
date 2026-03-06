@@ -1,47 +1,42 @@
-# @zovo/crx-manifest-validator
+# crx-manifest-validator
 
-[![npm version](https://img.shields.io/npm/v/@zovo/crx-manifest-validator.svg)](https://npmjs.com/package/@zovo/crx-manifest-validator)
-[![CI](https://github.com/theluckystrike/crx-manifest-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/theluckystrike/crx-manifest-validator/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Discord](https://img.shields.io/badge/Discord-Zovo-blueviolet.svg?logo=discord)](https://discord.gg/zovo)
-[![Website](https://img.shields.io/badge/Website-zovo.one-blue)](https://zovo.one)
+Validate Chrome Extension manifest.json files against Manifest V2 and V3 specs. Catches missing required fields, deprecated keys, dangerous host permissions, invalid content script configs, and Chrome Web Store review flags. Works as a CLI tool and a Node.js library.
 
-> Validate Chrome Extension `manifest.json` files against Manifest V2 and V3 specs. Catches missing required fields, deprecated keys, dangerous host permissions, invalid content script configs, and Chrome Web Store review flags. CLI tool and Node.js library.
-
-Part of the [Zovo](https://zovo.one) family of privacy-first Chrome extension developer tools.
-
-## Install
+INSTALL
 
 ```bash
-npm install @zovo/crx-manifest-validator
+npm install crx-manifest-validator
 ```
 
-## Quick Start
-
-### CLI
+CLI USAGE
 
 ```bash
-# Validate a manifest file
-npx @zovo/crx-manifest-validator manifest.json
+crx-manifest-validator manifest.json
 
-# JSON output
-npx @zovo/crx-manifest-validator --json manifest.json
+crx-manifest-validator --json manifest.json
 
-# Read from stdin
-cat manifest.json | npx @zovo/crx-manifest-validator
+cat manifest.json | crx-manifest-validator
 ```
 
-Exit codes: `0` = valid, `1` = has errors, `2` = file not found or invalid JSON.
+Options
 
-### Library
+    -h, --help     Show help message
+    -j, --json     Output in JSON format
+
+Exit codes
+
+    0    Manifest is valid
+    1    Manifest has errors
+    2    File not found or cannot be read
+
+LIBRARY USAGE
 
 ```typescript
-import { validateManifest, formatValidationResult } from '@zovo/crx-manifest-validator';
+import { validateManifest, formatValidationResult } from 'crx-manifest-validator';
 
 const manifest = {
   manifest_version: 3,
-  name: 'My Extension',
+  name: 'My-Extension',
   version: '1.0.0',
   permissions: ['tabs', 'cookies'],
   host_permissions: ['<all_urls>'],
@@ -49,89 +44,93 @@ const manifest = {
 
 const result = validateManifest(manifest);
 
-console.log(result.valid);          // false (warnings present)
+console.log(result.valid);           // true when zero errors (warnings are OK)
 console.log(result.manifestVersion); // 3
-console.log(result.summary);        // { errors: 0, warnings: 2, infos: 1 }
+console.log(result.summary);         // { errors: 0, warnings: 2, infos: 1 }
 
 // Human-readable output
 console.log(formatValidationResult(result, 'text'));
 
-// JSON output
+// Structured JSON output
 console.log(formatValidationResult(result, 'json'));
 ```
 
-## API
+API
 
-### `validateManifest(manifest)`
+validateManifest(manifest)
 
-Validates a parsed manifest object. Returns `ValidationResult`.
+Accepts a parsed manifest object (the result of JSON.parse on a manifest.json file). Returns a ValidationResult.
 
 ```typescript
 interface ValidationResult {
-  valid: boolean;              // true if zero errors (warnings are OK)
+  valid: boolean;
   manifestVersion: 2 | 3;
   issues: ValidationIssue[];
   summary: { errors: number; warnings: number; infos: number };
 }
 
 interface ValidationIssue {
-  code: string;                // e.g. 'MISSING_REQUIRED_FIELD'
+  code: string;
   message: string;
   severity: 'error' | 'warning' | 'info';
-  field?: string;              // e.g. 'manifest_version'
+  field?: string;
 }
 ```
 
-### `formatValidationResult(result, format?)`
+formatValidationResult(result, format?)
 
-Formats results as `'text'` (default) or `'json'`.
+Formats a ValidationResult as either 'text' (default) or 'json'.
 
-## What It Checks
+EXPORTED TYPES
 
-| Category | Examples |
-|----------|---------|
-| **Required fields** | `manifest_version`, `name`, `version` |
-| **Name/version format** | Length limits, valid characters, semver-like format |
-| **V3 forbidden keys** | `browser_action`, `page_action`, `background.scripts` |
-| **V2 deprecations** | Persistent background pages, `browser_action` |
-| **Host permissions** | Dangerous patterns like `<all_urls>`, `http://*/*` |
-| **Permissions** | Restricted permissions flagged for CWS review |
-| **Content scripts** | Missing `matches`, invalid `js`/`css` arrays |
-| **Web accessible resources** | V2 vs V3 format validation |
+Manifest, ManifestV2, ManifestV3, ValidationResult, ValidationIssue, ValidationSeverity, ContentScript, WebAccessibleResourceV2, WebAccessibleResourceV3, ExtensionAction, OptionsUI, TTSEngine, TTSVoice, Requirements, SidePanel
 
-## See Also
+WHAT IT CHECKS
 
-### Related Zovo Repositories
+Required fields
+    manifest_version, name, version
 
-- [crx-permission-analyzer](https://github.com/theluckystrike/crx-permission-analyzer) - Analyze Chrome extension permissions
-- [crx-extension-size-analyzer](https://github.com/theluckystrike/crx-extension-size-analyzer) - Analyze extension bundle size
-- [chrome-extension-starter-mv3](https://github.com/theluckystrike/chrome-extension-starter-mv3) - Production-ready MV3 starter template
-- [chrome-storage-plus](https://github.com/theluckystrike/chrome-storage-plus) - Type-safe storage wrapper
+Name and version format
+    Length limits, valid characters, dot-separated integer format
 
-### Zovo Chrome Extensions
+V3 forbidden keys
+    browser_action, page_action, background.scripts
 
-- [Zovo Tab Manager](https://chrome.google.com/webstore/detail/zovo-tab-manager) - Manage tabs efficiently
-- [Zovo Focus](https://chrome.google.com/webstore/detail/zovo-focus) - Block distractions
-- [Zovo Permissions Scanner](https://chrome.google.com/webstore/detail/zovo-permissions-scanner) - Check extension privacy grades
+V2 deprecations
+    Persistent background pages, browser_action migration notice
 
-Visit [zovo.one](https://zovo.one) for more information.
+Host permissions
+    Dangerous patterns like <all_urls>, http://*/*, missing scheme
 
-## Contributing
+Permissions
+    Restricted permissions flagged for Chrome Web Store review, tabs vs activeTab suggestion
 
-Contributions are welcome! Please follow these steps:
+Content scripts
+    Missing matches field, invalid js/css arrays
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/manifest-validation`
-3. **Make** your changes and add tests
-4. **Test** your changes: `npm test`
-5. **Commit** your changes: `git commit -m 'Add new validation rule'`
-6. **Push** to the branch: `git push origin feature/manifest-validation`
-7. **Submit** a Pull Request
+Web accessible resources
+    V2 string array and object formats, V3 object format with resources and matches
 
-## License
+DEVELOPMENT
 
-MIT — [Zovo](https://zovo.one)
+```bash
+git clone https://github.com/theluckystrike/crx-manifest-validator.git
+cd crx-manifest-validator
+npm install
+npm test
+npm run build
+```
+
+Requires Node.js 18 or later. Tests use Vitest. TypeScript source lives in src/ and compiles to dist/.
+
+CONTRIBUTING
+
+See CONTRIBUTING.md for guidelines on reporting issues, development workflow, code style, and testing.
+
+LICENSE
+
+MIT. See LICENSE file.
 
 ---
 
-*Built by developers, for developers. No compromises on privacy.*
+Built by theluckystrike. Visit zovo.one for more tools and projects.
